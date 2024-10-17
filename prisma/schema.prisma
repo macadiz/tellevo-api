@@ -1,0 +1,83 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id       String @id @default(uuid())
+  name     String
+  email    String @unique
+  username String @unique
+  password String
+  groupId  Int    @map("group_id")
+
+  TravelPassenger TravelPassenger[]
+  role            Role?
+  group           Group             @relation(fields: [groupId], references: [id])
+  Travel          Travel[]
+
+  @@map("user")
+}
+
+model Travel {
+  id         String @id @default(uuid())
+  locationId String @map("location_id")
+  fee        Float
+  groupId    Int    @map("group_id")
+  driverId   String @map("driver_id")
+
+  TravelPassenger TravelPassenger[]
+  location        Location          @relation(fields: [locationId], references: [id])
+  group           Group             @relation(fields: [groupId], references: [id])
+  driver          User              @relation(fields: [driverId], references: [id])
+
+  @@map("travel")
+}
+
+model TravelPassenger {
+  id       String  @id @default(uuid())
+  travelId String  @map("travel_id")
+  userId   String  @map("user_id")
+  paid     Boolean
+  groupId  Int     @map("group_id")
+
+  group     Group  @relation(fields: [groupId], references: [id])
+  travel    Travel @relation(fields: [travelId], references: [id])
+  passenger User   @relation(fields: [userId], references: [id])
+
+  @@map("travel_passenger")
+}
+
+model Location {
+  id        String   @id @default(uuid())
+  name      String
+  travel    Travel[]
+  latitude  String
+  longitude String
+
+  @@map("location")
+}
+
+model Group {
+  id              Int               @id
+  travelPassenger TravelPassenger[]
+  travel          Travel[]
+  user            User[]
+
+  @@map("group")
+}
+
+enum Role {
+  Driver
+  Passenger
+}
