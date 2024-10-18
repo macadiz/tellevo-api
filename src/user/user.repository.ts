@@ -14,7 +14,7 @@ export class UserRepository {
       },
     });
 
-    const isValid = await validateHash(password, user.password);
+    const isValid = user ? await validateHash(password, user.password) : false;
 
     return { isValid };
   }
